@@ -1,7 +1,13 @@
 <template>
   <div id="app" class="container">
+    <div class="block has-text-centered">
+      <b-radio v-model="radio" name="table" native-value="libs"> Libs </b-radio>
+      <b-radio v-model="radio" name="table" native-value="custom">
+        Custom
+      </b-radio>
+    </div>
     <b-table
-      v-if="data"
+      v-if="radio === 'libs'"
       :data="data"
       :columns="columns"
       pagination-size="is-small"
@@ -10,12 +16,16 @@
       pagination-rounded
       sort-multiple
     />
+    <sort-wrapper v-else />
   </div>
 </template>
 
 <script>
+import SortWrapper from './components/with-sort';
+
 export default {
   name: 'App',
+  components: { SortWrapper },
   data() {
     return {
       radio: 'libs',
