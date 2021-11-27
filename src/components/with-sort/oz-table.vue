@@ -1,6 +1,7 @@
 <script lang="jsx">
 import { orderBy } from 'lodash/collection';
 import FilterDropdown from './filter-dropdown';
+import OzTableRow from './oz-table-row';
 
 export default {
   name: 'oz-table',
@@ -86,26 +87,6 @@ export default {
         );
       });
     },
-    renderRows(h, columnsOptions) {
-      return this.sortedRows.map((row, index) => {
-        return (
-          <div key={row.id || index} class={this.$style.grid}>
-            {...this.renderColumns(h, row, columnsOptions)}
-          </div>
-        );
-      });
-    },
-    renderColumns(h, row, columnsOptions) {
-      return columnsOptions.map((column) => {
-        return (
-          <div key={column.prop} class={this.$style.cell}>
-            {column.scopedSlots.body
-              ? column.scopedSlots.body({ row })
-              : row[column.prop]}
-          </div>
-        );
-      });
-    },
     getColumnOptions() {
       return this.$slots.default
         .filter(
@@ -123,14 +104,24 @@ export default {
   render(h) {
     const columnsOptions = this.getColumnOptions();
     const columnsHead = this.renderHead(h, columnsOptions);
-    const rows = this.renderRows(h, columnsOptions);
 
     return (
       <div class={this.$style.table}>
         <div class={(this.$style.thead, this.$style.grid)}>
           {...columnsHead}
         </div>
-        <div>{...rows}</div>
+        <RecycleScroller
+          items={this.sortedRows}
+          itemSize={110}
+          buffer={200}
+          pageMode
+          keyField="id"
+          scopedSlots={{
+            default: ({ item }) => (
+              <OzTableRow row={item} columnsOptions={columnsOptions} />
+            ),
+          }}
+        />
       </div>
     );
   },

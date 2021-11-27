@@ -16,7 +16,7 @@
       pagination-rounded
       sort-multiple
     />
-    <sort-wrapper v-else />
+    <sort-wrapper v-else :rows="data" />
   </div>
 </template>
 

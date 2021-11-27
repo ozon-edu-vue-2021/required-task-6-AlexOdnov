@@ -28,14 +28,11 @@ export default {
     OzTableColumn,
     OzTable,
   },
-  async created() {
-    const res = await fetch(`https://jsonplaceholder.typicode.com/comments`);
-    this.rows = await res.json();
-  },
-  data() {
-    return {
-      rows: [],
-    };
+  props: {
+    rows: {
+      type: Array,
+      required: true,
+    },
   },
 };
 </script>
