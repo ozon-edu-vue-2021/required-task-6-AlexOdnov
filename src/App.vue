@@ -16,16 +16,18 @@
       pagination-rounded
       sort-multiple
     />
-    <sort-wrapper v-else :rows="data" />
+    <custom-table v-else :rows="data" />
   </div>
 </template>
 
 <script>
-import SortWrapper from './components/with-sort';
+import CustomTable from './components/custom-table';
 
 export default {
   name: 'App',
-  components: { SortWrapper },
+  components: {
+    CustomTable,
+  },
   data() {
     return {
       radio: 'libs',

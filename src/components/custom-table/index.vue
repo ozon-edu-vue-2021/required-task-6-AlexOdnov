@@ -23,7 +23,7 @@ import OzTable from './oz-table';
 import OzTableColumn from './oz-table-column';
 
 export default {
-  name: 'SortWrapper',
+  name: 'CustomTable',
   components: {
     OzTableColumn,
     OzTable,
