@@ -13,8 +13,8 @@ export default {
   },
   data() {
     return {
-      sortProp: '',
-      sortDirection: '',
+      sortProp: [],
+      sortDirection: [],
       filterProp: '',
       filterText: '',
     };
@@ -23,11 +23,11 @@ export default {
     sortedRows() {
       let res;
 
-      if (!this.sortProp) {
+      if (!this.sortDirection.length) {
         res = this.rows;
       }
 
-      res = orderBy(this.rows, [this.sortProp], [this.sortDirection]);
+      res = orderBy(this.rows, this.sortProp, this.sortDirection);
 
       if (this.filterText) {
         res = res.filter(
@@ -40,9 +40,20 @@ export default {
   },
   methods: {
     toggleSort(prop) {
-      this.sortProp = prop;
-      this.sortDirection =
-        this.sortDirection === 'desc' || !this.sortDirection ? 'asc' : 'desc';
+      const index = this.sortProp.indexOf(prop);
+      if (index !== -1) {
+        const sortDirection =
+          this.sortDirection[index] === 'desc' ? 'asc' : 'desc';
+        this.sortDirection.splice(index, 1, sortDirection);
+      } else {
+        this.sortProp.push(prop);
+        this.sortDirection.push('desc');
+      }
+    },
+    removeSort(prop) {
+      const index = this.sortProp.indexOf(prop);
+      this.sortProp.splice(index, 1);
+      this.sortDirection.splice(index, 1);
     },
     openFilterTooltip(prop = '') {
       this.filterProp = prop;
@@ -60,9 +71,13 @@ export default {
           : column.title;
         let sortIcon = 'sort';
 
-        if (sortProp === column.prop) {
+        const index = sortProp.indexOf(column.prop);
+
+        if (index !== -1) {
           sortIcon =
-            sortDirection === 'asc' ? 'sort-amount-down' : 'sort-amount-up';
+            sortDirection[index] === 'asc'
+              ? 'sort-amount-down'
+              : 'sort-amount-up';
         }
 
         return (
@@ -72,6 +87,11 @@ export default {
               class={$style.sortIcon}
               icon={sortIcon}
               on={{ click: () => this.toggleSort(column.prop) }}
+            />
+            <font-awesome-icon
+              class={$style.sortIcon}
+              icon="times"
+              on={{ click: () => this.removeSort(column.prop) }}
             />
             <FilterDropdown
               columnProp={column.prop}
@@ -107,15 +127,11 @@ export default {
 
     return (
       <div class={this.$style.table}>
-        <div class={(this.$style.thead, this.$style.grid)}>
-          {...columnsHead}
-        </div>
+        <div class={this.$style.thead}>{...columnsHead}</div>
         <RecycleScroller
           items={this.sortedRows}
           itemSize={110}
-          buffer={200}
           pageMode
-          keyField="id"
           scopedSlots={{
             default: ({ item }) => (
               <OzTableRow row={item} columnsOptions={columnsOptions} />
@@ -134,14 +150,16 @@ export default {
   width: 100%;
 }
 
-.thead {
-  position: sticky;
-  top: 0;
-}
-
 .grid {
   display: grid;
-  grid-template-columns: 10% 10% 25% 25% 30%;
+  grid-template-columns: 10% 12.5% 25% 25% 27.5%;
+}
+
+.thead {
+  composes: grid;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 .cell {
@@ -159,7 +177,6 @@ export default {
 
 .sortIcon {
   margin-left: 8px;
-  margin-right: 24px;
 }
 
 .sortIcon:hover {

@@ -39,7 +39,7 @@ export default {
 <style module>
 .grid {
   display: grid;
-  grid-template-columns: 10% 10% 25% 25% 30%;
+  grid-template-columns: 10% 12.5% 25% 25% 27.5%;
   grid-template-rows: 110px;
 }
 
