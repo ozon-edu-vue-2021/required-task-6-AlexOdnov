@@ -2,7 +2,8 @@
 import { orderBy } from 'lodash/collection';
 import FilterDropdown from './filter-dropdown';
 import OzTableRow from './oz-table-row';
-import DotsLoaderIcon from './dost-loader.svg';
+import OzInfPaginator from './oz-inf-paginator';
+import OzPaginator from './oz-paginator';
 
 export default {
   name: 'oz-table',
@@ -11,9 +12,29 @@ export default {
       type: Array,
       default: () => [],
     },
+    virtScroll: {
+      type: Boolean,
+      default: false,
+    },
     infScroll: {
       type: Boolean,
       default: false,
+    },
+    paginate: {
+      type: Boolean,
+      default: false,
+    },
+    currentPage: {
+      type: Number,
+      default: 1,
+    },
+    perPage: {
+      type: Number,
+      default: 20,
+    },
+    totalPages: {
+      type: Number,
+      default: 1,
     },
   },
   data() {
@@ -42,13 +63,19 @@ export default {
             if (!text) {
               continue;
             }
-            const res = row[prop].includes(text);
+            const res = row[prop].toString().includes(text);
             if (!res) {
               return false;
             }
           }
           return true;
         });
+      }
+
+      if (this.paginate) {
+        const start = (this.currentPage - 1) * 10;
+        const end = start + this.perPage;
+        res = res.splice(start, end);
       }
 
       return res;
@@ -158,22 +185,6 @@ export default {
         <OzTableRow row={row} columnsOptions={columnsOptions} />
       ));
     },
-    renderInfPager() {
-      const directives = [
-        {
-          name: 'detect-viewport',
-          value: {
-            callback: this.$listeners.getPage,
-          },
-        },
-      ];
-
-      const style = {
-        background: `url("${DotsLoaderIcon}") no-repeat center`,
-      };
-
-      return <div {...{ class: this.$style.infPager, style, directives }} />;
-    },
   },
   render(h) {
     const columnsOptions = this.getColumnOptions();
@@ -182,7 +193,7 @@ export default {
     return (
       <div class={this.$style.table}>
         <div class={this.$style.thead}>{...columnsHead}</div>
-        {!this.infScroll ? (
+        {this.virtScroll ? (
           <RecycleScroller
             items={this.sortedRows}
             itemSize={110}
@@ -196,7 +207,16 @@ export default {
         ) : (
           this.renderRows(columnsOptions)
         )}
-        {this.infScroll ? this.renderInfPager() : null}
+        {this.infScroll ? (
+          <OzInfPaginator on={{ getPage: this.$listeners.getPage }} />
+        ) : null}
+        {this.paginate ? (
+          <OzPaginator
+            currentPage={this.currentPage}
+            totalPages={this.totalPages}
+            on={{ changePage: this.$listeners.changePage }}
+          />
+        ) : null}
       </div>
     );
   },
@@ -240,9 +260,5 @@ export default {
 
 .sortIcon:hover {
   cursor: pointer;
-}
-.infPager {
-  width: 100%;
-  height: 32px;
 }
 </style>
