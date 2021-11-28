@@ -2,6 +2,7 @@
 import { orderBy } from 'lodash/collection';
 import FilterDropdown from './filter-dropdown';
 import OzTableRow from './oz-table-row';
+import DotsLoaderIcon from './dost-loader.svg';
 
 export default {
   name: 'oz-table',
@@ -9,6 +10,10 @@ export default {
     rows: {
       type: Array,
       default: () => [],
+    },
+    infScroll: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {
@@ -148,6 +153,27 @@ export default {
           })
         );
     },
+    renderRows(columnsOptions) {
+      return this.sortedRows.map((row) => (
+        <OzTableRow row={row} columnsOptions={columnsOptions} />
+      ));
+    },
+    renderInfPager() {
+      const directives = [
+        {
+          name: 'detect-viewport',
+          value: {
+            callback: this.$listeners.getPage,
+          },
+        },
+      ];
+
+      const style = {
+        background: `url("${DotsLoaderIcon}") no-repeat center`,
+      };
+
+      return <div {...{ class: this.$style.infPager, style, directives }} />;
+    },
   },
   render(h) {
     const columnsOptions = this.getColumnOptions();
@@ -156,16 +182,21 @@ export default {
     return (
       <div class={this.$style.table}>
         <div class={this.$style.thead}>{...columnsHead}</div>
-        <RecycleScroller
-          items={this.sortedRows}
-          itemSize={110}
-          pageMode
-          scopedSlots={{
-            default: ({ item }) => (
-              <OzTableRow row={item} columnsOptions={columnsOptions} />
-            ),
-          }}
-        />
+        {!this.infScroll ? (
+          <RecycleScroller
+            items={this.sortedRows}
+            itemSize={110}
+            pageMode
+            scopedSlots={{
+              default: ({ item }) => (
+                <OzTableRow row={item} columnsOptions={columnsOptions} />
+              ),
+            }}
+          />
+        ) : (
+          this.renderRows(columnsOptions)
+        )}
+        {this.infScroll ? this.renderInfPager() : null}
       </div>
     );
   },
@@ -209,5 +240,9 @@ export default {
 
 .sortIcon:hover {
   cursor: pointer;
+}
+.infPager {
+  width: 100%;
+  height: 32px;
 }
 </style>

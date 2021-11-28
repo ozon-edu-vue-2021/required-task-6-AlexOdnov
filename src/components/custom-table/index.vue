@@ -1,5 +1,5 @@
 <template>
-  <oz-table :rows="rows">
+  <oz-table :rows="innerRows" @getPage="infGetPage" :infScroll="infScroll">
     <oz-table-column prop="id" title="ID" />
     <oz-table-column prop="postId" title="Post ID" />
 
@@ -31,7 +31,42 @@ export default {
   props: {
     rows: {
       type: Array,
-      required: true,
+      default: () => [],
+    },
+    infScroll: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  data() {
+    return {
+      innerRows: this.rows,
+      currentPage: 1,
+    };
+  },
+  created() {
+    if (this.innerRows.length === 0) {
+      this.blockingPromise = this.getPage(1);
+    }
+  },
+  methods: {
+    async getPage(number) {
+      const res = await fetch(
+        `https://jsonplaceholder.typicode.com/comments?postId=${number}`
+      );
+      this.innerRows = await res.json();
+      this.currentPage = number;
+    },
+    async infGetPage() {
+      this.blockingPromise && (await this.blockingPromise);
+      const res = await fetch(
+        `https://jsonplaceholder.typicode.com/comments?postId=${
+          this.currentPage + 1
+        }`
+      );
+      const newRows = await res.json();
+      this.innerRows = [...this.innerRows, ...newRows];
+      this.currentPage++;
     },
   },
 };
