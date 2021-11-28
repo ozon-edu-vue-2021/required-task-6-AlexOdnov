@@ -41,8 +41,9 @@ export default {
     return {
       sortProp: [],
       sortDirection: [],
-      filterProp: [],
+      filter: {},
       filterText: [],
+      openedTooltip: '',
     };
   },
   computed: {
@@ -55,15 +56,14 @@ export default {
 
       res = orderBy(this.rows, this.sortProp, this.sortDirection);
 
-      if (this.filterText.length) {
+      if (Object.keys(this.filter).length) {
         res = res.filter((row) => {
-          for (let i = 0; i < this.filterProp.length; i++) {
-            const prop = this.filterProp[i];
-            const text = this.filterText[i];
-            if (!text) {
-              continue;
+          for (const prop in this.filter) {
+            const text = this.filter[prop];
+            let res = true;
+            if (text) {
+              res = row[prop].toString().includes(text);
             }
-            const res = row[prop].toString().includes(text);
             if (!res) {
               return false;
             }
@@ -99,25 +99,26 @@ export default {
       this.sortDirection.splice(index, 1);
     },
     openFilterTooltip(prop) {
-      const index = this.filterProp.indexOf(prop);
-      if (index === -1) {
-        this.filterProp.push(prop);
-        this.filterText.push('');
+      this.openedTooltip = prop;
+      if (!this.filter[prop]) {
+        this.filter = Object.assign({}, this.filter, { [prop]: '' });
       }
     },
-    closeFilterTooltip(prop) {
-      const index = this.filterProp.indexOf(prop);
-      if (index !== -1) {
-        this.filterProp.splice(index, 1);
-        this.filterText.splice(index, 1);
-      }
+    closeFilterTooltip() {
+      this.openedTooltip = '';
+    },
+    removeFilterText(prop) {
+      const tempObj = this.filter;
+      delete tempObj[prop];
+      this.filter = Object.assign({}, tempObj);
+
+      this.closeFilterTooltip();
     },
     setFilterText(prop, e) {
-      const index = this.filterProp.indexOf(prop);
-      this.filterText.splice(index, 1, e.target.value);
+      this.filter[prop] = e.target.value;
     },
     renderHead(h, columnsOptions) {
-      const { $style, sortProp, sortDirection, filterProp, filterText } = this;
+      const { $style, sortProp, sortDirection, filter } = this;
 
       return columnsOptions.map((column) => {
         const renderedTitle = column.scopedSlots.title
@@ -134,12 +135,6 @@ export default {
               : 'sort-amount-up';
         }
 
-        const indexFilter = filterProp.indexOf(column.prop);
-        let filterTextEl = '';
-        if (indexFilter !== -1) {
-          filterTextEl = filterText[indexFilter];
-        }
-
         return (
           <div key={column.prop} class={$style.headerCell}>
             <span>{renderedTitle}</span>
@@ -148,18 +143,22 @@ export default {
               icon={sortIcon}
               on={{ click: () => this.toggleSort(column.prop) }}
             />
-            <font-awesome-icon
-              class={$style.sortIcon}
-              icon="times"
-              on={{ click: () => this.removeSort(column.prop) }}
-            />
+            {indexSort !== -1 ? (
+              <font-awesome-icon
+                class={$style.sortIcon}
+                icon="times"
+                on={{ click: () => this.removeSort(column.prop) }}
+              />
+            ) : null}
             <FilterDropdown
               columnProp={column.prop}
-              shown={indexFilter !== -1}
-              filterText={filterTextEl}
+              shown={this.openedTooltip === column.prop}
+              filterText={filter[column.prop]}
+              style={{ color: filter[column.prop] ? 'green' : 'currentColor' }}
               on={{
                 openFilterTooltip: () => this.openFilterTooltip(column.prop),
-                closeFilterTooltip: () => this.closeFilterTooltip(column.prop),
+                closeFilterTooltip: () => this.closeFilterTooltip(),
+                removeFilterText: () => this.removeFilterText(column.prop),
                 setFilterText: (e) => this.setFilterText(column.prop, e),
               }}
             />

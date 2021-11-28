@@ -17,7 +17,12 @@ export default {
   },
   render() {
     const { $style, shown, filterText, $listeners } = this;
-    const { openFilterTooltip, setFilterText, closeFilterTooltip } = $listeners;
+    const {
+      openFilterTooltip,
+      setFilterText,
+      closeFilterTooltip,
+      removeFilterText,
+    } = $listeners;
 
     return (
       <v-dropdown
@@ -25,7 +30,6 @@ export default {
         triggers={[]}
         autoHide={false}
         shown={shown}
-        placement="top"
       >
         <font-awesome-icon icon="filter" on={{ click: openFilterTooltip }} />
 
@@ -35,6 +39,7 @@ export default {
             domProps={{ value: filterText }}
             on={{ input: setFilterText }}
           />
+          <button on={{ click: removeFilterText }}>удалить</button>
 
           <font-awesome-icon
             icon="times"
