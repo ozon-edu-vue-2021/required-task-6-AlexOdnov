@@ -25,6 +25,7 @@ export default {
         triggers={[]}
         autoHide={false}
         shown={shown}
+        placement="top"
       >
         <font-awesome-icon icon="filter" on={{ click: openFilterTooltip }} />
 

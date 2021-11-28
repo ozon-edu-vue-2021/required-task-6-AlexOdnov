@@ -15,8 +15,8 @@ export default {
     return {
       sortProp: [],
       sortDirection: [],
-      filterProp: '',
-      filterText: '',
+      filterProp: [],
+      filterText: [],
     };
   },
   computed: {
@@ -29,10 +29,21 @@ export default {
 
       res = orderBy(this.rows, this.sortProp, this.sortDirection);
 
-      if (this.filterText) {
-        res = res.filter(
-          (row) => row[this.filterProp].search(this.filterText) > -1
-        );
+      if (this.filterText.length) {
+        res = res.filter((row) => {
+          for (let i = 0; i < this.filterProp.length; i++) {
+            const prop = this.filterProp[i];
+            const text = this.filterText[i];
+            if (!text) {
+              continue;
+            }
+            const res = row[prop].includes(text);
+            if (!res) {
+              return false;
+            }
+          }
+          return true;
+        });
       }
 
       return res;
@@ -55,12 +66,23 @@ export default {
       this.sortProp.splice(index, 1);
       this.sortDirection.splice(index, 1);
     },
-    openFilterTooltip(prop = '') {
-      this.filterProp = prop;
-      this.filterText = '';
+    openFilterTooltip(prop) {
+      const index = this.filterProp.indexOf(prop);
+      if (index === -1) {
+        this.filterProp.push(prop);
+        this.filterText.push('');
+      }
     },
-    setFilterText(e) {
-      this.filterText = e.target.value;
+    closeFilterTooltip(prop) {
+      const index = this.filterProp.indexOf(prop);
+      if (index !== -1) {
+        this.filterProp.splice(index, 1);
+        this.filterText.splice(index, 1);
+      }
+    },
+    setFilterText(prop, e) {
+      const index = this.filterProp.indexOf(prop);
+      this.filterText.splice(index, 1, e.target.value);
     },
     renderHead(h, columnsOptions) {
       const { $style, sortProp, sortDirection, filterProp, filterText } = this;
@@ -71,13 +93,19 @@ export default {
           : column.title;
         let sortIcon = 'sort';
 
-        const index = sortProp.indexOf(column.prop);
+        const indexSort = sortProp.indexOf(column.prop);
 
-        if (index !== -1) {
+        if (indexSort !== -1) {
           sortIcon =
-            sortDirection[index] === 'asc'
+            sortDirection[indexSort] === 'asc'
               ? 'sort-amount-down'
               : 'sort-amount-up';
+        }
+
+        const indexFilter = filterProp.indexOf(column.prop);
+        let filterTextEl = '';
+        if (indexFilter !== -1) {
+          filterTextEl = filterText[indexFilter];
         }
 
         return (
@@ -95,12 +123,12 @@ export default {
             />
             <FilterDropdown
               columnProp={column.prop}
-              shown={column.prop === filterProp}
-              filterText={filterText}
+              shown={indexFilter !== -1}
+              filterText={filterTextEl}
               on={{
                 openFilterTooltip: () => this.openFilterTooltip(column.prop),
-                closeFilterTooltip: () => this.openFilterTooltip(),
-                setFilterText: this.setFilterText,
+                closeFilterTooltip: () => this.closeFilterTooltip(column.prop),
+                setFilterText: (e) => this.setFilterText(column.prop, e),
               }}
             />
           </div>
