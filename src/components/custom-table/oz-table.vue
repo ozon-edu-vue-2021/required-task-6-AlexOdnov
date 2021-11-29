@@ -42,7 +42,6 @@ export default {
       sortProp: [],
       sortDirection: [],
       filter: {},
-      filterText: [],
       openedTooltip: '',
     };
   },
@@ -73,9 +72,9 @@ export default {
       }
 
       if (this.paginate) {
-        const start = (this.currentPage - 1) * 10;
+        const start = (this.currentPage - 1) * this.perPage;
         const end = start + this.perPage;
-        res = res.splice(start, end);
+        res = res.slice(start, end);
       }
 
       return res;
